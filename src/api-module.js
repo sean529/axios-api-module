@@ -225,39 +225,40 @@ export default class ApiModule {
             throw new TypeError(`[ApiModule] api metadata [${key}] is not an object`);
         }
 
-        const context = new Context(metadata, this.options);
 
-        if (!context.url || !context.method) {
+        if (!metadata.url || !metadata.method) {
             console.warn(`[ApiModule] check your api metadata for [${key}]: `, metadata);
             throw new Error(`[ApiModule] api metadata [${key}]: 'method' or 'url' value not found`);
         }
 
-        /**
-         * Collect errors and set errors uniformly. Returns if there is an error
-         * @param {Error|any} err
-         * @return {Boolean}
-         */
-        const handleResponseError = err => {
-            const error = err || context.responseError;
-            if (!error) return false;
-
-            if (error instanceof Error) {
-                context.setError(error);
-            }
-            else if (typeof error === 'string') {
-                context.setError(new Error(error));
-            }
-            else {
-                context.setError(error);
-            }
-            return true;
-        };
-
 
         const request = (data, opt = {}) => {
+            const context = request.context = new Context(metadata, this.options);
             context
                 .setData(data)
                 ._setRequestOptions(opt);
+
+            /**
+             * Collect errors and set errors uniformly. Returns if there is an error
+             * @param {Error|any} err
+             * @return {Boolean}
+             */
+            const handleResponseError = err => {
+                const error = err || context.responseError;
+                if (!error) return false;
+
+                if (error instanceof Error) {
+                    context.setError(error);
+                }
+                else if (typeof error === 'string') {
+                    context.setError(new Error(error));
+                }
+                else {
+                    context.setError(error);
+                }
+                return true;
+            };
+
 
             return new Promise((resolve, reject) => {
                 this.foreRequestMiddleWare(context, err => {
@@ -305,7 +306,6 @@ export default class ApiModule {
             })
         };
 
-        request.context = context;
         return request;
     }
 }

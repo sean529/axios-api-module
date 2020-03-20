@@ -214,3 +214,59 @@ describe('cancellation', () => {
         }
     });
 });
+
+
+describe('context', () => {
+    let server, apiMapper, apiModule;
+    before('Setup server', done => {
+        server = utils.createServer(7788);
+        server.on('listening', done);
+    });
+
+    after('Stop and clean server', done => {
+        server.on('close', () => {
+            done();
+        });
+        server.close();
+        server = null;
+    });
+
+    beforeEach('Setup ApiModule', () => {
+        apiModule = new ApiModule({
+            baseConfig: {
+                baseURL: 'http://localhost:7788'
+            },
+            module: false,
+            metadatas: {
+                a: {
+                    url: '/context/a',
+                    method: 'post'
+                },
+                b: {
+                    url: '/context/b',
+                    method: 'post'
+                }
+            }
+        });
+
+        apiMapper = apiModule.getInstance();
+    });
+    it('the second request will use new context object', async () => {
+        let context;
+        const data = { body: { a: 1, b: 2 } };
+        await apiMapper.a(data);
+        context = apiMapper.a.context;
+        console.log(context)
+
+        await apiMapper.a();
+        expect(apiMapper.a.context).to.be.not.equal(context);
+    });
+
+    // it('the second request will use new context object', async () => {
+    //     const data = { body: { a: 1, b: 2 } };
+    //     await apiMapper.a(data);
+
+    //     expect(apiMapper.a.context.data).to.be.equal;
+    //     await apiMapper.a();
+    // });
+});
