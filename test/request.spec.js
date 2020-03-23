@@ -1,5 +1,6 @@
 import chai, { expect } from 'chai';
 import ApiModule from '../src';
+import Context from '../src/context';
 import utils from './utils';
 
 
@@ -219,7 +220,7 @@ describe('cancellation', () => {
 describe('context', () => {
     let server, apiMapper, apiModule;
     before('Setup server', done => {
-        server = utils.createServer(7788);
+        server = utils.createBounceServer(7788);
         server.on('listening', done);
     });
 
@@ -251,22 +252,55 @@ describe('context', () => {
 
         apiMapper = apiModule.getInstance();
     });
+
+    it('access context after the request is called', async () => {
+        expect(apiMapper.a.context).to.be.equal(undefined);
+        await apiMapper.a();
+        expect(apiMapper.a.context).to.be.ok;
+        expect(apiMapper.a.context).to.be.instanceOf(Context);
+    });
+
     it('the second request will use new context object', async () => {
         let context;
-        const data = { body: { a: 1, b: 2 } };
-        await apiMapper.a(data);
+        await apiMapper.a();
         context = apiMapper.a.context;
-        console.log(context)
 
         await apiMapper.a();
         expect(apiMapper.a.context).to.be.not.equal(context);
+        expect(apiMapper.a.context).to.be.instanceOf(Context);
     });
 
-    // it('the second request will use new context object', async () => {
-    //     const data = { body: { a: 1, b: 2 } };
-    //     await apiMapper.a(data);
+    it('using the context parameter on request will do NO effect', (done) => {
+        const data = { body: { a: 1 } };
+        const changedData = { body: { a: 1, b: 2 } };
 
-    //     expect(apiMapper.a.context.data).to.be.equal;
-    //     await apiMapper.a();
-    // });
+        apiModule.useBefore((context, next) => {
+            expect(context.data).to.be.equal(data);
+            expect(context.data).to.be.not.equal(changedData);
+            
+            next();
+        });
+        apiModule.useAfter((context, next) => {
+            expect(context.data).to.be.equal(changedData);
+
+            expect(context.response.data).to.be.deep.equal(data.body);
+            expect(context.response.data).to.be.not.deep.equal(changedData.body);
+            next();
+        });
+
+        apiMapper.a(data)
+            .then(res => {
+                expect(res.data).to.be.deep.equal(data.body);
+                done();
+            })
+            .catch(err => {
+                console.error(err);
+                done(err);
+                throw 'It should not go here';
+            });
+        
+        apiMapper.a.context.setData(changedData);   // execute after fore-request middleware
+        apiMapper.a.context.setResponse(changedData);   // the response will be overridden by the actual response
+    });
+
 });

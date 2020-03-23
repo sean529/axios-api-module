@@ -81,7 +81,7 @@ var ApiModule = /*#__PURE__*/function () {
   }
   /**
    * Register Globally Fore-Request MiddleWare Globally (For All Instance)
-   * @param {Function} foreRequestHook(apiMeta, data = {}, next) 
+   * @param {(context, next) => null} foreRequestHook
    */
 
 
@@ -90,7 +90,7 @@ var ApiModule = /*#__PURE__*/function () {
 
     /**
      * Registe Fore-Request MiddleWare
-     * @param {Function} foreRequestHook(apiMeta, data = {}, next)
+     * @param {(context, next) => null} foreRequestHook
      */
     value: function useBefore() {
       var foreRequestHook = arguments.length > 0 && arguments[0] !== undefined ? arguments[0] : defaultMiddleware;
@@ -98,7 +98,7 @@ var ApiModule = /*#__PURE__*/function () {
     }
     /**
      * Registe Post-Request MiddleWare
-     * @param {Function} foreRequestHook(apiMeta, data = {}, next)
+     * @param {(context, next) => null} postRequestHook
      */
 
   }, {
@@ -109,7 +109,7 @@ var ApiModule = /*#__PURE__*/function () {
     }
     /**
      * Registe Fallback MiddleWare
-     * @param {Function} fallbackHook(apiMeta, data = {}, next)
+     * @param {(context, next) => null} fallbackHook
      */
 
   }, {
@@ -241,38 +241,37 @@ var ApiModule = /*#__PURE__*/function () {
         throw new TypeError("[ApiModule] api metadata [".concat(key, "] is not an object"));
       }
 
-      var context = new Context(metadata, this.options);
-
-      if (!context.url || !context.method) {
+      if (!metadata.url || !metadata.method) {
         console.warn("[ApiModule] check your api metadata for [".concat(key, "]: "), metadata);
         throw new Error("[ApiModule] api metadata [".concat(key, "]: 'method' or 'url' value not found"));
       }
-      /**
-       * Collect errors and set errors uniformly. Returns if there is an error
-       * @param {Error|any} err
-       * @return {Boolean}
-       */
-
-
-      var handleResponseError = function handleResponseError(err) {
-        var error = err || context.responseError;
-        if (!error) return false;
-
-        if (error instanceof Error) {
-          context.setError(error);
-        } else if (typeof error === 'string') {
-          context.setError(new Error(error));
-        } else {
-          context.setError(error);
-        }
-
-        return true;
-      };
 
       var request = function request(data) {
         var opt = arguments.length > 1 && arguments[1] !== undefined ? arguments[1] : {};
+        var context = request.context = new Context(metadata, _this3.options);
 
         context.setData(data)._setRequestOptions(opt);
+        /**
+         * Collect errors and set errors uniformly. Returns if there is an error
+         * @param {Error|any} err
+         * @return {Boolean}
+         */
+
+
+        var handleResponseError = function handleResponseError(err) {
+          var error = err || context.responseError;
+          if (!error) return false;
+
+          if (error instanceof Error) {
+            context.setError(error);
+          } else if (typeof error === 'string') {
+            context.setError(new Error(error));
+          } else {
+            context.setError(error);
+          }
+
+          return true;
+        };
 
         return new Promise(function (resolve, reject) {
           _this3.foreRequestMiddleWare(context, function (err) {
@@ -317,7 +316,6 @@ var ApiModule = /*#__PURE__*/function () {
         });
       };
 
-      request.context = context;
       return request;
     }
   }], [{
@@ -328,7 +326,7 @@ var ApiModule = /*#__PURE__*/function () {
     }
     /**
      * Register Globally Post-Request MiddleWare Globally (For All Instance)
-     * @param {Function} foreRequestHook(apiMeta, data = {}, next) 
+     * @param {(context, next) => null} postRequestHook
      */
 
   }, {
@@ -339,7 +337,7 @@ var ApiModule = /*#__PURE__*/function () {
     }
     /**
      * Register Globally ForeRequest MiddleWare Globally (For All Instance)
-     * @param {Function} fallbackHook(apiMeta, data = {}, next) 
+     * @param {(context, next) => null} fallbackHook
      */
 
   }, {

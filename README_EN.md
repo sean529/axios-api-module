@@ -217,9 +217,6 @@ Request({ query: {...}, body: {...}, params: {...} }, opt?)
 ```js
 const request = apiMapper.user.getInfo;
 
-// *configurable context parameter
-console.log(request.context);
-
 // axios origin request options
 const config = { /* Axios Request Config */ };
 const requestData = {

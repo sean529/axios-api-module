@@ -215,9 +215,6 @@ Request({ query: {...}, body: {...}, params: {...} }, opt?)
 ```js
 const request = apiMapper.user.getInfo;
 
-// *可以配置 context 参数
-console.log(request.context);
-
 // axios origin request options
 const config = { /* Axios Request Config */ };
 const requestData = {

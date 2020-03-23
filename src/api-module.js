@@ -75,7 +75,7 @@ export default class ApiModule {
 
     /**
      * Register Globally Fore-Request MiddleWare Globally (For All Instance)
-     * @param {Function} foreRequestHook(apiMeta, data = {}, next) 
+     * @param {(context, next) => null} foreRequestHook
      */
     static globalBefore(foreRequestHook = defaultMiddleware) {
         ApiModule.foreRequestHook = foreRequestHook;
@@ -83,7 +83,7 @@ export default class ApiModule {
 
     /**
      * Register Globally Post-Request MiddleWare Globally (For All Instance)
-     * @param {Function} foreRequestHook(apiMeta, data = {}, next) 
+     * @param {(context, next) => null} postRequestHook
      */
     static globalAfter(postRequestHook = defaultMiddleware) {
         ApiModule.postRequestHook = postRequestHook;
@@ -91,7 +91,7 @@ export default class ApiModule {
 
     /**
      * Register Globally ForeRequest MiddleWare Globally (For All Instance)
-     * @param {Function} fallbackHook(apiMeta, data = {}, next) 
+     * @param {(context, next) => null} fallbackHook
      */
     static globalCatch(fallbackHook = defaultMiddleware) {
         ApiModule.fallbackHook = fallbackHook;
@@ -99,7 +99,7 @@ export default class ApiModule {
 
     /**
      * Registe Fore-Request MiddleWare
-     * @param {Function} foreRequestHook(apiMeta, data = {}, next)
+     * @param {(context, next) => null} foreRequestHook
      */
     useBefore(foreRequestHook = defaultMiddleware) {
         this.foreRequestHook = foreRequestHook;
@@ -107,7 +107,7 @@ export default class ApiModule {
 
     /**
      * Registe Post-Request MiddleWare
-     * @param {Function} foreRequestHook(apiMeta, data = {}, next)
+     * @param {(context, next) => null} postRequestHook
      */
     useAfter(postRequestHook = defaultMiddleware) {
         this.postRequestHook = postRequestHook;
@@ -115,7 +115,7 @@ export default class ApiModule {
 
     /**
      * Registe Fallback MiddleWare
-     * @param {Function} fallbackHook(apiMeta, data = {}, next)
+     * @param {(context, next) => null} fallbackHook
      */
     useCatch(fallbackHook = defaultMiddleware) {
         this.fallbackHook = fallbackHook;
